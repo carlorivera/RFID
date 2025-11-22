@@ -16,9 +16,13 @@
 #define SS_PIN 10
 #define RST_PIN 5
 
+
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 
+#define buzzer 8
+
 void setup() {
+  pinMode(buzzer,OUTPUT);// set digital IO pin pattern, OUTPUT to be output 
   Serial.begin(9600);  // Initialize serial communications
   while (!Serial);     // Wait for serial port to connect (for native USB boards)
   
@@ -61,8 +65,30 @@ void loop() {
     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
     Serial.print(mfrc522.uid.uidByte[i], HEX);
   }
+
+
   Serial.println();
   
+
+  // Play different tones based on card UID
+  if (mfrc522.uid.uidByte[0] == 0x59 && mfrc522.uid.uidByte[1] == 0xD4 && mfrc522.uid.uidByte[2] == 0x11 && mfrc522.uid.uidByte[3] == 0x9E) {
+    // Authorized card - high pitch, single beep
+    Serial.println("Authorized card! Playing success tone");
+    tone(buzzer, 500);  // 2000 Hz tone
+    delay(200);
+    noTone(buzzer);
+  } else {
+    // Unknown card - low pitch, double beep
+    Serial.println("Unknown card! Playing error tone");
+    tone(buzzer, 500);   // 500 Hz low tone
+    delay(100);
+    noTone(buzzer);
+    delay(50);
+    tone(buzzer, 500);
+    delay(100);
+    noTone(buzzer);
+  }
+
   // Show card type
   Serial.print("Card Type: ");
   MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
