@@ -38,3 +38,22 @@ Connect the RC522 module to the Arduino Mega 2560 as follows:
 - When a card is detected, displays:
   - Card UID in hexadecimal format
   - Card type (MIFARE Classic, MIFARE Ultralight, etc.)
+- Shows "Hello Evan" on the LCD when card UID `59 D4 11 9E` is detected
+
+## 1602A LCD Display Wiring
+
+The 1602A LCD module with I2C backpack requires only 4 connections:
+
+| LCD I2C Pin | Arduino Mega Pin | Notes |
+|-------------|------------------|-------|
+| GND         | GND              | Ground |
+| VCC         | 5V               | Power (5V for LCD) |
+| SDA         | 20               | I2C Data (hardware I2C - fixed) |
+| SCL         | 21               | I2C Clock (hardware I2C - fixed) |
+
+### Important Notes for LCD
+
+- The LCD uses **5V power** (unlike the RC522 which uses 3.3V)
+- The I2C address is typically `0x27` or `0x3F` - if the LCD doesn't work, try changing the address in the code
+- On Arduino Mega, the I2C pins (SDA/SCL) are fixed at pins 20 and 21
+- The I2C backpack adapter should be soldered to the back of the LCD module

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <MFRC522.h>
+#include <LiquidCrystal_I2C.h>
 
 // RC522 Module Pin Configuration for Arduino Mega 2560
 // IMPORTANT: Arduino Mega hardware SPI pins are FIXED:
@@ -17,10 +18,19 @@
 #define RST_PIN 5
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // Create LCD instance (address 0x27, 16 cols, 2 rows)
 
 void setup() {
   Serial.begin(9600);  // Initialize serial communications
   while (!Serial);     // Wait for serial port to connect (for native USB boards)
+  
+  // Initialize LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("RFID Ready");
+  lcd.setCursor(0, 1);
+  lcd.print("Scan card...");
   
   SPI.begin();         // Initialize SPI bus
   mfrc522.PCD_Init();  // Initialize MFRC522
@@ -70,6 +80,40 @@ void loop() {
   
   Serial.println("=================================");
   Serial.println();
+  
+  // Check if this is Evan's card (UID: 59 D4 11 9E)
+  if (mfrc522.uid.size == 4 &&
+      mfrc522.uid.uidByte[0] == 0x59 &&
+      mfrc522.uid.uidByte[1] == 0xD4 &&
+      mfrc522.uid.uidByte[2] == 0x11 &&
+      mfrc522.uid.uidByte[3] == 0x9E) {
+    // Evan's card detected!
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Hello Evan");
+    Serial.println("Welcome, Evan!");
+  } else {
+    // Different card detected
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Card Detected");
+    lcd.setCursor(0, 1);
+    // Display UID on LCD
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      if (mfrc522.uid.uidByte[i] < 0x10) lcd.print("0");
+      lcd.print(mfrc522.uid.uidByte[i], HEX);
+      if (i < mfrc522.uid.size - 1) lcd.print(" ");
+    }
+  }
+  
+  delay(2000);  // Display message for 2 seconds
+  
+  // Return to ready state
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("RFID Ready");
+  lcd.setCursor(0, 1);
+  lcd.print("Scan card...");
   
   // Halt PICC
   mfrc522.PICC_HaltA();
